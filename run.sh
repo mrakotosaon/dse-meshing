@@ -1,0 +1,4 @@
+python logmap_estimation/eval_network.py
+python logmap_alignment/align_patches.py
+python logmap_alignment/eval_align_meshes.py
+python triangle_selection/select.py
