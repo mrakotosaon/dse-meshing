@@ -1,5 +1,5 @@
 # [Learning Delaunay Surface Elements for Mesh Reconstruction (DSE meshing)](http://www.lix.polytechnique.fr/Labo/Marie-Julie.RAKOTOSAONA/dse_meshing.html)
-This is our implementation of "Learning Delaunay Surface Elements for Mesh Reconstruction", a method for mesh recontruction from a point cloud.
+This is our implementation of ["Learning Delaunay Surface Elements for Mesh Reconstruction"](https://arxiv.org/abs/2012.01203), a method for mesh recontruction from a point cloud.
 
 
 ![DSE_meshing](img/dse_meshing_teaser.png "DSE meshing")
