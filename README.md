@@ -7,7 +7,7 @@ This is our implementation of ["Learning Delaunay Surface Elements for Mesh Reco
 
 This code was written by [Marie-Julie Rakotosaona](http://www.lix.polytechnique.fr/Labo/Marie-Julie.RAKOTOSAONA/).
 
-The triangle selection code is based on  on [Meshing-Point-Clouds-with-IER](https://github.com/Colin97/Point2Mesh) (with a few smaller modifications) that also uses code from the project [annoy](https://github.com/spotify/annoy). Our network code is based on [PointNet](https://github.com/charlesq34/pointnet)
+The triangle selection code is based on  on [Meshing-Point-Clouds-with-IER](https://github.com/Colin97/Point2Mesh) (with a few smaller modifications) that also uses code from the project [annoy](https://github.com/spotify/annoy). Our network code is based on [PointNet](https://github.com/charlesq34/pointnet).
 
 ## Prerequisites
 * CUDA and CuDNN (changing the code to run on CPU should require few changes)
