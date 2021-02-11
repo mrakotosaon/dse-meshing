@@ -3,7 +3,7 @@ import sys
 BASE_DIR = os.path.dirname(__file__)
 sys.path.append(BASE_DIR)
 ROOT_DIR = os.path.dirname(BASE_DIR)
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import tensorflow as tf
 import numpy as np
 from scipy.spatial.transform import Rotation as R
@@ -126,12 +126,13 @@ def train_one_epoch(session, ops, train_writer, epoch):
         summary,_,global_step, loss_v=session.run(to_run, feed_dict=feed_dict)
         train_writer.add_summary(summary, global_step)
         l_loss.append(loss_v)
-        if step%100 == 99:
-            print("epoch {} step {}/{} loss: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss)))
+        if step%200 == 0:
+            print("epoch {:4d} step {:5d}/{:5d} loss: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss)))
             l_loss = []
 
 def eval_one_epoch(session, ops, test_writer, epoch):
     l_loss= []
+    print('validation:')
     n_steps = VALSET_SIZE//BATCH_SIZE
     for step in range(n_steps):
         rotations = np.tile(np.eye(3)[np.newaxis, :,:], [BATCH_SIZE, 1, 1])
@@ -143,9 +144,8 @@ def eval_one_epoch(session, ops, test_writer, epoch):
         summary,global_step, loss_v=session.run(to_run, feed_dict=feed_dict)
         test_writer.add_summary(summary, global_step)
         l_loss.append(loss_v)
-        if step%50 == 49:
-            print("validation epoch {} step {}/{} loss: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss)))
-
+        if step == n_steps-1:
+            print("validation epoch {:4d} step {:5d}/{:5d} loss: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss)))
     return np.mean(l_loss)
 
 if not os.path.exists("log"): os.mkdir("log")
@@ -155,7 +155,6 @@ best_loss = 1e10
 session,  train_writer,test_writer, ops, saver = init_graph()
 for epoch in range(1000):
     save_path = saver.save(session, "{}/model.ckpt".format(LOG_DIR))
-
     if epoch>200:
         lr = 0.00001
     train_one_epoch(session, ops, train_writer,  epoch)

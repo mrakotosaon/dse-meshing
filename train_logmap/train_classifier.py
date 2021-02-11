@@ -3,7 +3,7 @@ import sys
 BASE_DIR = os.path.dirname(__file__)
 sys.path.append(BASE_DIR)
 ROOT_DIR = os.path.dirname(BASE_DIR)
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import tensorflow as tf
 import numpy as np
 from scipy.spatial.transform import Rotation as R
@@ -80,7 +80,6 @@ def init_graph():
         map = tf.squeeze(map)
         gt_dists = safe_norm(gt_map, axis = -1)
 
-        # is the point in  the 50 nearests?
         geo_neighbors =tf.math.top_k(-gt_dists, k=N_NEAREST_NEIGHBORS)[1]
         geo_neighbors_indices =tf.stack([tf.tile(tf.range(BATCH_SIZE)[:, tf.newaxis], [ 1, N_NEAREST_NEIGHBORS]), geo_neighbors], axis = 2)
         geo_neighbors_indices = tf.reshape(geo_neighbors_indices, [-1, 2])
@@ -88,11 +87,10 @@ def init_graph():
         class_loss = tf.reduce_mean(tf.square(labels - tf.nn.sigmoid(map)))*30.0
 
         predicted_geo_neighbors =tf.math.top_k(tf.nn.sigmoid(map), k=N_NEAREST_NEIGHBORS)[1]
-
         predicted_geo_neighbors_indices =tf.stack([tf.tile(tf.range(BATCH_SIZE)[ :,tf.newaxis], [1, N_NEAREST_NEIGHBORS]), predicted_geo_neighbors], axis = 2)
         predicted_geo_neighbors_indices = tf.reshape(predicted_geo_neighbors_indices, [-1, 2])
         predicted_labels = tf.cast(tf.scatter_nd(predicted_geo_neighbors_indices, tf.reshape(tf.ones_like(predicted_geo_neighbors), [-1]), map.shape), dtype=tf.float32)
-        accuracy = tf.reduce_mean(tf.abs(labels- predicted_labels))
+        accuracy = 1 - tf.reduce_mean(tf.abs(labels- predicted_labels))
 
 
         loss_dist = tf.reduce_mean(tf.square(map - gt_dists))*5.0
@@ -102,7 +100,6 @@ def init_graph():
         tf.summary.scalar("loss dist",loss_dist)
         tf.summary.scalar("class loss",class_loss)
         tf.summary.scalar("accuracy ",accuracy)
-
         tf.summary.scalar("total_loss",loss)
         merged = tf.summary.merge_all()
         learn_geo_var = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='learn_geo_dist')
@@ -147,14 +144,15 @@ def train_one_epoch(session, ops, train_writer, epoch):
         train_writer.add_summary(summary, global_step)
         l_loss.append(loss_v)
         l_acc.append(accuracy_v)
-        if step%100 == 99:
-            print("epoch {} step {}/{} loss: {:3.4f} accuracy: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss), np.mean(l_acc)))
+        if step%200 == 0:
+            print("epoch {:4d} step {:5d}/{:5d} loss: {:3.4f} accuracy: {:3.2f}%".format(epoch, step,n_steps, np.mean(l_loss), np.mean(l_acc)*100))
             l_loss = []
             l_acc = []
 
 def eval_one_epoch(session, ops, test_writer, epoch):
     l_loss= []
     l_acc= []
+    print('validation:')    
     n_steps = VALSET_SIZE//BATCH_SIZE
     for step in range(n_steps):
         rotations = np.tile(np.eye(3)[np.newaxis, :,:], [BATCH_SIZE, 1, 1])
@@ -167,8 +165,8 @@ def eval_one_epoch(session, ops, test_writer, epoch):
         test_writer.add_summary(summary, global_step)
         l_loss.append(loss_v)
         l_acc.append(accuracy_v)
-        if step%50 == 49:
-            print("validation epoch {} step {}/{} loss: {:3.4f} accuracy: {:3.4f}".format(epoch, step,n_steps, np.mean(l_loss), np.mean(l_acc)))
+        if step==n_steps-1:
+            print("validation epoch {:4d} step {:5d}/{:5d} loss: {:3.4f} accuracy: {:3.2f}%".format(epoch, step,n_steps, np.mean(l_loss), np.mean(l_acc)*100))
     return np.mean(l_loss)
 
 
@@ -177,7 +175,7 @@ if __name__ == '__main__':
     lr = 0.0005
     best_loss = 1e10
     session,  train_writer,test_writer, ops, saver = init_graph()
-    for epoch in range(2000):
+    for epoch in range(1000):
         if epoch>20:
             lr = 0.00001
         train_one_epoch(session, ops, train_writer,  epoch)

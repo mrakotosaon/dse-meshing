@@ -137,11 +137,11 @@ def main(file):
     corrected_maps = pool.map(functools.partial(align_patch_func,shared_predicted_map,shared_predicted_neighborhood_indices), range(n_points))
     corrected_maps = np.array(corrected_maps)
     end = time.time()
-    print("{:3.3f} seconds".format(end - start))
+    #print("{:3.3f} seconds".format(end - start))
     np.save(os.path.join(res_path,'corrected_maps_{}.npy'.format(file)), corrected_maps)
 
 if __name__ == '__main__':
-    print('this step should take around 20 sec per shape of 10k points')
+    print('patches alignment: this step took around 20 sec per shape of 10k points on our machine')
     in_path = os.path.join(ROOT_DIR, 'data/test_data')
     raw_predictions = os.path.join(ROOT_DIR, 'data/test_data/raw_prediction')
     res_path = os.path.join(ROOT_DIR, 'data/test_data/aligned_prediction')

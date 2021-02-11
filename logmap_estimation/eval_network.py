@@ -161,8 +161,8 @@ if __name__ == '__main__':
     if not os.path.exists(res_path): os.mkdir(res_path)
     # logmap_model = "log/log_thingifamous_logmap/model.ckpt"
     # classifier_model = "log/log_thingifamous_classifier/model.ckpt"
-    logmap_model = "/media/disk1/mj_data/mesh_generation/latest_logmaps_models/log_pcpnet_thingi_logmap/model.ckpt"
-    classifier_model = "/media/disk1/mj_data/mesh_generation/latest_logmaps_models/log_pcpnet_thingi_continuous/model.ckpt"
+    logmap_model = os.path.join(ROOT_DIR, 'data/pretrained_models/pretrained_logmap/model.ckpt')
+    classifier_model = os.path.join(ROOT_DIR, 'data/pretrained_models/pretrained_classifier/model.ckpt')
     n_trigs=430
     n_neighbors = 120
     n_nearest_neighbors = 30

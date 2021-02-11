@@ -25,71 +25,107 @@ pip install trimesh
 
 Clone this repository:
 ``` bash
-git clone https://github.com/mrakotosaon/pointcleannet.git
-cd pointcleannet
+git clone https://github.com/mrakotosaon/dse-meshing.git
+cd dse-meshing
 ```
 
-
-Download datasets:
+Setup the triangle selection step:
 ``` bash
-cd data
-python download_data.py --task denoising
-python download_data.py --task outliers_removal
+cd triangle_selection/postprocess
+mkdir build
+cd build
+cmake ..
+make
 ```
 
 
-Download pretrained models:
-``` bash
-cd models
-python download_models.py --task denoising
-python download_models.py --task outliers_removal
-```
 
  ## Data
 
-Our data can be found here: https://nuage.lix.polytechnique.fr/index.php/s/xSRrTNmtgqgeLGa .
 
-It contains the following files:
-- Dataset for denoising
-- Training set and test set for outliers removal
-- Pre-trained models for denoising and outliers removal
-
-In the datasets the input and ground truth point clouds are stored in different files with the same name but with different extensions.
-- For denoising: `.xyz` for input noisy point clouds, `.clean_xyz` for the ground truth.
-- For outliers removal: `.xyz` for input point clouds with outliers, `.outliers` for the labels.
+- **Training set:** We store our training data in .tfrecords files. The files contain elements of size N_NEIGHBORSx5 where the first 3 columns contain the 3D coordinates and the last two columns contain the ground truth logmap 2D coordinates.
+- **Pre-trained models** on the famousthingi dataset.
+- **Testset** from famousthingi dataset.
 
 
+Our data can be downloaded directly here:
+- training data: https://nuage.lix.polytechnique.fr/index.php/s/gmnGHjNq7WKipRA
+- pretrained models: https://nuage.lix.polytechnique.fr/index.php/s/FTCyp5WHg7Z68EM
+- testing data: https://nuage.lix.polytechnique.fr/index.php/s/3ZcFtqKm6Z27ZJ6
+
+To download our data from the code:
+- Download pretrained models:
+  ``` bash
+  cd data
+  python download_data.py --task models
+  ```
+
+- Download training set:
+  ``` bash
+  cd data
+  python download_data.py --task training
+  ```
+
+- Download testing set:
+  ``` bash
+  cd data
+  python download_data.py --task testing
+  ```
 
 ## Training
-To classify outliers using default settings:
+To train the classifier network on the provided dataset:
 ``` bash
-cd outliers_removal
-mkdir results
-python eval_pcpnet.py
+cd train_logmap
+python train_classifier.py
 ```
+
+To train the logmap estimation network on the provided dataset:
+``` bash
+cd train_logmap
+python train_logmap_network.py
+```
+
+- The trained models are saved in `log/log_famousthingi_classifier` and `log/log_famousthingi_logmap` by default. Paths for the training set, output and training parameters can be changed directly in the code.
+- Training curves are generated during training and can be viewed using `tensorboard`.
+
+
 
 ## Testing
-Our testing pipeline has 4 main steps:
-- **Logmap estimation:** we locally predict the logmap that contains neighboring points at each point using the trained networks.
-- **Logmap alignment:** we locally align the log maps to one another to ensure better consistency.
-- **Triangle selection:** we select the produced triangles to generate an almost manifold mesh.
+Our testing pipeline has 3 main steps:
+1.  **Logmap estimation:** we locally predict the logmap that contains neighboring points at each point using the trained networks.
+2. **Logmap alignment:** we locally align the log maps to one another to ensure better consistency.
+3. **Triangle selection:** we select the produced triangles to generate an almost manifold mesh.
 
-### Logmap estimation
-### Logmap alignment
-### Triangle selection
+To run all steps on the point clouds in data/test_data directory:
 ``` bash
-cd noise_removal
-mkdir results
-./run.sh
+ ./run.sh
 ```
-(the input shapes and number of iterations are specified in run.sh file)
+The produced meshes can be found in `data/test_data/select` in the format: `final_mesh_(SHAPE_NAME).ply`. For numerical precision reasons we suggest to use point clouds with a bounding box diagonal larger than 1. By default our code evaluates the .xyz point clouds in `data/test_data` please adapt the paths in the code if you wish to evaluate  point clouds at different locations.
+### 1. Logmap estimation
 
-
-## Training
-To train PCPNet with the default settings:
+To run only the logmap estimation networks on the point clouds in data/test_data directory:
 ``` bash
-python train_pcpnet.py
+cd logmap_estimation
+python eval_network.py
 ```
+
+### 2. Logmap alignment
+
+To only align the logmap patches from step 1 and compute the appearance frequency for step 3:
+``` bash
+cd logmap_alignment
+python align_patches.py
+python eval_align_meshes.py
+```
+
+### 3. Triangle selection
+
+To apply triangle selection on the output from step 2:
+``` bash
+cd triangle_selection
+python select.py
+```
+
 
 ## Citation
 If you use our work, please cite our paper.
