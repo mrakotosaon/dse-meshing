@@ -96,6 +96,8 @@ Our testing pipeline has 3 main steps:
 2. **Logmap alignment:** we locally align the log maps to one another to ensure better consistency.
 3. **Triangle selection:** we select the produced triangles to generate an almost manifold mesh.
 
+We provide one example point cloud in `data/test_data`. For easily evaluating your pointclouds or the pointclouds from the testset, move the .xyz files there.
+
 To run all steps on the point clouds in data/test_data directory:
 ``` bash
  ./run.sh
@@ -130,10 +132,11 @@ python select.py
 ## Citation
 If you use our work, please cite our paper.
 ```
-@inproceedings{rakotosaona2021dsemeshing,
+@article{rakotosaona2020learning,
   title={Learning Delaunay Surface Elements for Mesh Reconstruction},
-  author={Rakotosaona, Marie-Julie and Guerrero, Paul and Aigerman, Noam and Mitra, Niloy J and Ovsjanikov, Maks},
-  year={2021},
+  author={Rakotosaona, Marie-Julie and Guerrero, Paul and Aigerman, Noam and Mitra, Niloy and Ovsjanikov, Maks},
+  journal={arXiv e-prints},
+  year={2020}
 }
 ```
 
