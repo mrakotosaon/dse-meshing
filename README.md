@@ -31,6 +31,7 @@ cd dse-meshing
 
 Setup the triangle selection step:
 ``` bash
+git submodule update --init --recursive
 cd triangle_selection/postprocess
 mkdir build
 cd build
