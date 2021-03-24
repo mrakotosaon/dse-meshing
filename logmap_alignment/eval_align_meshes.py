@@ -9,7 +9,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import numpy as np
 from sklearn.neighbors import KDTree
 import delaunay_tf
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 
 def init_config():
     tf.reset_default_graph()

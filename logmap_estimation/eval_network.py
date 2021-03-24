@@ -11,7 +11,7 @@ sys.path.append(os.path.join(ROOT_DIR, 'train_logmap'))
 import delaunay_tf
 import tf_dataset
 import pointnet_seg as model
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 RESIZE=True
 def safe_norm(x, epsilon=1e-8, axis=None):
