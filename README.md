@@ -137,6 +137,7 @@ If you use our work, please cite our paper.
   title={Learning Delaunay Surface Elements for Mesh Reconstruction},
   author={Rakotosaona, Marie-Julie and Guerrero, Paul and Aigerman, Noam and Mitra, Niloy and Ovsjanikov, Maks},
   journal={arXiv e-prints},
+  pages={arXiv--2012},
   year={2020}
 }
 ```
