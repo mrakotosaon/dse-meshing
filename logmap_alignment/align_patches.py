@@ -108,19 +108,21 @@ def align_patch(predicted_map, predicted_neighborhood_indices, center_point):
     return corrected_patch
 
 def main(file):
-    predicted_map = np.load(os.path.join(raw_predictions,"predicted_map_{}.npy".format(file)))
+    #predicted_map = np.load(os.path.join(raw_predictions,"predicted_map_{}.npy".format(file)))
+    predicted_map = np.load(os.path.join(res_path,"proj_maps_{}.npy".format(file)))
+
     points = np.loadtxt(os.path.join(in_path,"{}.xyz".format(file)))
     corrected_maps = np.zeros_like(predicted_map)
     n_points = len(predicted_map)
     predicted_neighborhood_indices = np.load(os.path.join(raw_predictions,"predicted_neighborhood_indices_{}.npy".format(file)))
     full_errors = []
     BATCH_SIZE = 64#512#16
-    shared_predicted_map = RawArray('d',10000*31*3)
-    shared_predicted_map = np.frombuffer(shared_predicted_map, dtype=np.float64).reshape(10000, 31, 3)
+    shared_predicted_map = RawArray('d',10000*(n_nearest_neighbors+1)*3)
+    shared_predicted_map = np.frombuffer(shared_predicted_map, dtype=np.float64).reshape(10000, (n_nearest_neighbors+1), 3)
     np.copyto(shared_predicted_map, predicted_map)
 
-    shared_predicted_neighborhood_indices =RawArray('i',10000*31)
-    shared_predicted_neighborhood_indices = np.frombuffer(shared_predicted_neighborhood_indices, dtype=np.int32).reshape(10000, 31)
+    shared_predicted_neighborhood_indices =RawArray('i',10000*(n_nearest_neighbors+1))
+    shared_predicted_neighborhood_indices = np.frombuffer(shared_predicted_neighborhood_indices, dtype=np.int32).reshape(10000, (n_nearest_neighbors+1))
     np.copyto(shared_predicted_neighborhood_indices, predicted_neighborhood_indices)
 
     manager = multiprocessing.Manager()
@@ -133,12 +135,12 @@ def main(file):
     jobs = []
     start = time.time()
     print('start:', file)
-    pool = multiprocessing.Pool(64)
-    corrected_maps = pool.map(functools.partial(align_patch_func,shared_predicted_map,shared_predicted_neighborhood_indices), range(n_points))
-    corrected_maps = np.array(corrected_maps)
+    with multiprocessing.Pool(64) as pool:
+        corrected_maps = pool.map(functools.partial(align_patch_func,shared_predicted_map,shared_predicted_neighborhood_indices), range(n_points))
+        corrected_maps = np.array(corrected_maps)
+        np.save(os.path.join(res_path,'corrected_maps_{}.npy'.format(file)), corrected_maps)
     end = time.time()
     #print("{:3.3f} seconds".format(end - start))
-    np.save(os.path.join(res_path,'corrected_maps_{}.npy'.format(file)), corrected_maps)
 
 if __name__ == '__main__':
     print('patches alignment: this step took around 20 sec per shape of 10k points on our machine')

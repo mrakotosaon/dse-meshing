@@ -4,10 +4,15 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 import numpy as np
 import random
 import pickle
+import trimesh
+BBOX = 1000.0 # we resize the shape to this bounding box to avoid numerical errors in the (external) postprocessing code
 
 def write_candidates(file):
     points = np.loadtxt(os.path.join(in_path, "{}.xyz".format(file)))
+    bbox_diag = np.linalg.norm(np.max(points, axis = 0)-np.min(points, axis = 0))
+    points*=BBOX/bbox_diag
     trig_probs = np.load(os.path.join(align_path, "patch_frequency_count_{}.npy".format(file)))
+
     indices = np.reshape(trig_probs[:,:3], [-1, 3])
     labels = np.reshape(trig_probs[:,3:], [-1])
     points = points.astype(str)
@@ -22,7 +27,7 @@ def write_candidates(file):
     content+= "\n".join([" ".join(list(x)) for x in bins])
     with open(os.path.join(res_path, "pred_{}.txt".format(file)), 'w') as f:
         f.write(content)
-
+    return bbox_diag
 
 if __name__ == '__main__':
     in_path = os.path.join(ROOT_DIR, 'data/test_data')
@@ -31,12 +36,16 @@ if __name__ == '__main__':
     if not os.path.exists(res_path): os.mkdir(res_path)
     files = os.listdir(in_path)
     files = [x.replace('.xyz', "") for x in files if x.endswith('.xyz')]
+    bbox_diag = []
     for file in files:
         print("triangle selection:",file)
-        write_candidates(file)
+        bbox_diag.append(write_candidates(file))
         arg1 = os.path.join(res_path, "pred_{}.txt".format(file))
         arg2 = os.path.join(res_path, "final_mesh_{}.ply".format(file))
-        #a#rg1 = os.path.join("../data/test_data/select/", "pred_{}.txt".format(file))
-        #arg2 = os.path.join("../data/test_data/select/", "final_mesh_{}.ply".format(file))
-
         os.system(os.path.join(BASE_DIR, "postprocess/build/postprocess {} {}".format(arg1, arg2)))
+    for i, file in enumerate(files):
+        print("triangle resize:",file)
+        arg2 = os.path.join(res_path, "final_mesh_{}.ply".format(file))
+        mesh = trimesh.load(arg2, process=False)
+        mesh.vertices*=bbox_diag[i]/BBOX
+        mesh.export(arg2)

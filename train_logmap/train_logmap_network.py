@@ -33,6 +33,7 @@ TRAINING_SHAPES = list(set(list(range(56))) - set(TESTING_SHAPES))
 N_TRAINING_SHAPES = len(TRAINING_SHAPES)
 N_TESTING_SHAPES = len(TESTING_SHAPES)
 LOG_DIR = "log/log_famousthingi_logmap"
+
 n_patches = 10000
 path_records = "../data/training_data/famousthingi_logmap_patches_{}.tfrecords"
 
@@ -75,7 +76,7 @@ def init_graph():
         neighbor_points = tf.transpose(tf.matmul(rotations, tf.transpose(neighbor_points, [0, 2, 1])),[0, 2, 1])
 
         with tf.variable_scope("learn_logmap"):
-            map = model.logmap(neighbor_points, is_training,  batch_size=BATCH_SIZE, activation=tf.nn.swish)
+            map = model.logmap(neighbor_points, is_training,  batch_size=BATCH_SIZE, activation=tf.nn.relu)
 
         map = align.align(map, gt_map)
         dists = safe_norm(map, axis = -1)
@@ -85,6 +86,7 @@ def init_graph():
         loss = loss_dist + loss_pos
         optimizer = tf.train.AdamOptimizer(learning_rate)
         train = optimizer.minimize(loss,global_step=batch)
+
         tf.summary.scalar("loss dist",loss_dist)
         tf.summary.scalar("loss pos",loss_pos)
         tf.summary.scalar("total_loss",loss)
@@ -150,13 +152,11 @@ def eval_one_epoch(session, ops, test_writer, epoch):
 
 if not os.path.exists("log"): os.mkdir("log")
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
-lr = 0.0001
+lr = 0.00001#0.0001
 best_loss = 1e10
 session,  train_writer,test_writer, ops, saver = init_graph()
-for epoch in range(1000):
+for epoch in range(500):
     save_path = saver.save(session, "{}/model.ckpt".format(LOG_DIR))
-    if epoch>200:
-        lr = 0.00001
     train_one_epoch(session, ops, train_writer,  epoch)
     loss_val = eval_one_epoch(session, ops, test_writer,  epoch)
     if loss_val<best_loss:
