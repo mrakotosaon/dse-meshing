@@ -54,7 +54,7 @@ if __name__ == '__main__':
     opt = parse_arguments()
     if opt.task == "training" or opt.task == "all":
         download_training()
-    if opt.task == "testing":
+    elif opt.task == "testing":
         download_testing()
     elif opt.task == "models":
         download_models()
