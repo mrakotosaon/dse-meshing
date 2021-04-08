@@ -12,7 +12,7 @@ The triangle selection code is based on  on [Meshing-Point-Clouds-with-IER](http
 ## Prerequisites
 * CUDA and CuDNN (changing the code to run on CPU should require few changes)
 * Python 3.6
-* Tensorflow 1.5
+* Tensorflow 1.15
 
 ## Setup
 Install required python packages, if they are not already installed:
