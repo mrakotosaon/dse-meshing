@@ -108,8 +108,7 @@ def align_patch(predicted_map, predicted_neighborhood_indices, center_point):
     return corrected_patch
 
 def main(file):
-    #predicted_map = np.load(os.path.join(raw_predictions,"predicted_map_{}.npy".format(file)))
-    predicted_map = np.load(os.path.join(res_path,"proj_maps_{}.npy".format(file)))
+    predicted_map = np.load(os.path.join(raw_predictions,"predicted_map_{}.npy".format(file)))
 
     points = np.loadtxt(os.path.join(in_path,"{}.xyz".format(file)))
     corrected_maps = np.zeros_like(predicted_map)
