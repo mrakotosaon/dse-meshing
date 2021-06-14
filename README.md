@@ -133,12 +133,13 @@ python select.py
 ## Citation
 If you use our work, please cite our paper.
 ```
-@article{rakotosaona2020learning,
-  title={Learning Delaunay Surface Elements for Mesh Reconstruction},
-  author={Rakotosaona, Marie-Julie and Guerrero, Paul and Aigerman, Noam and Mitra, Niloy and Ovsjanikov, Maks},
-  journal={arXiv e-prints},
-  pages={arXiv--2012},
-  year={2020}
+@InProceedings{Rakotosaona_2021_CVPR,
+    author    = {Rakotosaona, Marie-Julie and Guerrero, Paul and Aigerman, Noam and Mitra, Niloy J. and Ovsjanikov, Maks},
+    title     = {Learning Delaunay Surface Elements for Mesh Reconstruction},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2021},
+    pages     = {22-31}
 }
 ```
 
