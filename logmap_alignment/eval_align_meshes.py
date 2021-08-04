@@ -31,9 +31,7 @@ def init_graph(X3D,X3D_normals, n_neighbors):
         corrected_map = tf.placeholder(tf.float32, shape=[BATCH_SIZE, n_nearest_neighbors+1, 3])
         corrected_points_neighbors = tf.placeholder(tf.int32, shape=[BATCH_SIZE, n_nearest_neighbors+1])
 
-        corrected_approx_triangles, corrected_indices = delaunay_tf.get_triangles_geo_batches(normals,
-                                                                                       n_neighbors=n_nearest_neighbors,
-                                                                                       n_trigs=n_trigs,
+        corrected_approx_triangles, corrected_indices = delaunay_tf.get_triangles_geo_batches(n_neighbors=n_nearest_neighbors,
                                                                                        gdist = corrected_map,
                                                                                        gdist_neighbors =corrected_points_neighbors[:,1:],
                                                                                        first_index =first_index_pl)
@@ -105,7 +103,6 @@ if __name__ == '__main__':
     in_path = os.path.join(ROOT_DIR, 'data/test_data')
     raw_prediction_path = os.path.join(ROOT_DIR, 'data/test_data/raw_prediction')
     res_path = os.path.join(ROOT_DIR, 'data/test_data/aligned_prediction')
-    n_trigs=430
     n_neighbors = 120
     n_nearest_neighbors = 30
 

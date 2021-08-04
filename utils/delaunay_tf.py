@@ -38,14 +38,6 @@ def get_is_trig_exact(inter_dist, n_neighbors):
     is_triangle = tf.where(is_triangle<n_neighbors, tf.zeros_like(is_triangle), tf.ones_like(is_triangle))
     return is_triangle
 
-def correct_surface(center_point, center_point_normal, nn_coord, nn_coord_normal):
-    center_point_normal = tf.tile(center_point_normal[tf.newaxis,:], [nn_coord_normal.shape[0], 1])
-    center_point = tf.tile(center_point[tf.newaxis,:], [nn_coord_normal.shape[0], 1])
-    cos = tf.square(tf.reduce_sum(tf.multiply(center_point_normal, nn_coord_normal), axis =-1))
-    origin_vector =nn_coord-center_point
-    proj_distance = tf.abs(tf.reduce_sum(tf.multiply(origin_vector, center_point_normal), axis = -1))
-    return tf.where((cos<tf.square(tf.cos(0.5))) & (proj_distance>tf.reduce_mean(safe_norm(origin_vector))/2), tf.ones_like(nn_coord)*1e5, nn_coord)
-
 
 def compute_intersections(half_planes, couples):
     # compute the intersections between the couples of half planes
@@ -57,18 +49,15 @@ def compute_intersections(half_planes, couples):
 
 
 
-def compute_triangles_local_geodesic_distances(nn_coord, center_point,  center_point_normal, nn_coord_normal, couples,normalized_normals=None,   n_trigs = 1000):
+def compute_triangles_local_geodesic_distances(nn_coord, center_point, couples):
     n_neighbors = nn_coord.shape[1].value
+    n_trigs = couples.shape[0]
     nn_coord = nn_coord[:,:,:2]
     center_point = center_point[:,:2]
     half_planes =  comp_half_planes(nn_coord, center_point)
     intersections= compute_intersections(half_planes, couples)
-    # TODO couples should be half
-    _, closest_intersections_idx = tf.math.top_k(-tf.reduce_sum(tf.square(intersections[:,:,:2] - tf.tile(center_point[:,tf.newaxis,:], [1, intersections.shape[1],1])), axis = -1), n_trigs)
-    intersection_couples = tf.gather(tf.tile(couples[tf.newaxis,:,:],[center_point.shape[0], 1, 1]), closest_intersections_idx, batch_dims=1)
-    intersections = tf.gather(intersections, closest_intersections_idx, batch_dims=1)
+    intersection_couples = tf.tile(couples[tf.newaxis,:,:],[center_point.shape[0], 1, 1])
     # compute the distance between the intersection points (N**2 points) and the half planes (N)
-    # what is the order of half plane here?
     inter_dist0 = tf.reduce_sum(tf.multiply(tf.tile(half_planes[:,tf.newaxis,:,:],[1, n_trigs, 1, 1]) ,tf.tile(intersections[:,:,tf.newaxis,:],[1,1,n_neighbors, 1])), axis=-1)
     index_couples_a = tf.tile(tf.range(center_point.shape[0])[:,tf.newaxis,tf.newaxis], [1, n_trigs, 2])
     index_couples_b = tf.tile(tf.range(n_trigs)[tf.newaxis,:,tf.newaxis], [center_point.shape[0], 1, 2])
@@ -77,17 +66,13 @@ def compute_triangles_local_geodesic_distances(nn_coord, center_point,  center_p
     inter_dist0 = tf.where(to_ignore>0.5, -tf.ones_like(inter_dist0)*1e10,inter_dist0)
     inter_dist = tf.where(tf.abs(inter_dist0)<config.EPS,-tf.ones_like(inter_dist0)*1e10, inter_dist0)
     is_triangle_exact = get_is_trig_exact(inter_dist, n_neighbors)
-
     return is_triangle_exact,  intersection_couples
 
-def get_triangles_geo_batches(normals,  n_neighbors=60, n_trigs=500,  gt_trigs = False, gdist=None, gdist_neighbors=None, first_index=None):
-    n_points = normals.shape[0]
+def get_triangles_geo_batches(  n_neighbors=60, gdist=None, gdist_neighbors=None, first_index=None):
     couples = tf.constant(get_couples_matrix_sparse(n_neighbors), dtype = tf.int32)
-    nn_coord_normal = tf.gather(normals, gdist_neighbors)
     nn_coord = gdist[:,1:]
     center_point = gdist[:,0]
-    center_point_normal = normals[:center_point.shape[0]]
-    exact_triangles, local_indices= compute_triangles_local_geodesic_distances(nn_coord,  center_point,  center_point_normal,nn_coord_normal, couples, n_trigs = n_trigs)
+    exact_triangles, local_indices= compute_triangles_local_geodesic_distances(nn_coord,  center_point, couples)
     global_indices = tf.gather(gdist_neighbors, local_indices, batch_dims=1)
     first_index = tf.tile(first_index[:,tf.newaxis,tf.newaxis],[1, global_indices.shape[1], 1])
     global_indices = tf.concat([first_index, global_indices], axis = 2)

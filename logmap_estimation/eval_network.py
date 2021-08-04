@@ -53,14 +53,12 @@ def retrieve_triangles(shape_indices, shape_probs):
 
 N_NEIGHBORS = 8
 N_TRIG_NEIGHBORS = 10
-def init_graph(X3D,X3D_normals, n_neighbors,classifier_model, logmap_model):
+def init_graph(X3D, n_neighbors,classifier_model, logmap_model):
     n_points = X3D.shape[0]
 
     config = init_config()
     current_type = tf.float32
     with tf.device('/gpu:'+str(0)):
-        normals = tf.Variable(tf.convert_to_tensor(X3D_normals,dtype=tf.float32), dtype=tf.float32)
-        normals_normalized =tf.divide(normals, tf.maximum(tf.tile(safe_norm(normals, axis = -1)[:,tf.newaxis],[1, 3]), 1e-6))
         coord_3D = tf.constant(X3D,  dtype=tf.float32)
         points_neighbors0 = tf.placeholder(tf.int32, shape=[BATCH_SIZE, n_neighbors+1])
         first_index_pl = tf.placeholder(tf.int32, shape=[BATCH_SIZE,])
@@ -75,9 +73,7 @@ def init_graph(X3D,X3D_normals, n_neighbors,classifier_model, logmap_model):
             map = model.logmap(neighbor_points, is_training,  batch_size=BATCH_SIZE,activation=tf.nn.relu)
         predicted_map = tf.concat([ map, tf.zeros([ map.shape[0],  map.shape[1], 1])], axis = 2)
 
-        target_triangles, target_indices = delaunay_tf.get_triangles_geo_batches(normals,
-                                                                                    n_neighbors=n_nearest_neighbors,
-                                                                                    n_trigs=n_trigs,
+        target_triangles, target_indices = delaunay_tf.get_triangles_geo_batches(n_neighbors=n_nearest_neighbors,
                                                                                     gdist = predicted_map,
                                                                                     gdist_neighbors =points_neighbors[:,1:],
                                                                                     first_index =first_index_pl)
@@ -114,7 +110,7 @@ def reconstruct(name,classifier_model, logmap_model, in_path, res_path):
     X3D_normals = np.zeros([X3D.shape[0],3])
     X3D_normals[:,2] = 1
     n_points = len(X3D)
-    session,ops= init_graph(X3D,X3D_normals, n_neighbors,classifier_model, logmap_model)
+    session,ops= init_graph(X3D, n_neighbors,classifier_model, logmap_model)
     points_indices =list(range(n_points))
     predicted_map = []
     triangles = []
@@ -163,7 +159,6 @@ if __name__ == '__main__':
     # classifier_model = "log/log_thingifamous_classifier/model.ckpt"
     logmap_model = os.path.join(ROOT_DIR, 'data/pretrained_models/pretrained_logmap/model.ckpt')
     classifier_model = os.path.join(ROOT_DIR, 'data/pretrained_models/pretrained_classifier/model.ckpt')
-    n_trigs=430
     n_neighbors = 120
     n_nearest_neighbors = 30
 
