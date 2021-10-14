@@ -89,7 +89,8 @@ python train_logmap_network.py
 - The trained models are saved in `log/log_famousthingi_classifier` and `log/log_famousthingi_logmap` by default. Paths for the training set, output and training parameters can be changed directly in the code.
 - Training curves are generated during training and can be viewed using `tensorboard`.
 
-
+### Creating a new training set
+To create a new training set please refer to the directory `training_set_processing`.
 
 ## Testing
 Our testing pipeline has 3 main steps:
