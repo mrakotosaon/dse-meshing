@@ -177,7 +177,7 @@ if __name__ == '__main__':
     if not os.path.exists("tmp_files"):
         os.makedirs("tmp_files")
 
-    n_logmap_points = 50#1000
-    n_logmap_neighbours = 20#200
-    n_sampled_logmap_points =  40#500
+    n_logmap_points = 10000
+    n_logmap_neighbours = 200
+    n_sampled_logmap_points =  1000
     main(data_path, output_path, n_logmap_points, n_logmap_neighbours, n_sampled_logmap_points)
